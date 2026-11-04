@@ -9,7 +9,13 @@ import DirectoryPage from "../src/client/pages/DirectoryPage";
 import SummaryPage from "../src/client/pages/SummaryPage";
 import { blankClinic, blankVisit, clinicSchema } from "../src/shared/schemas";
 import ClinicMap from "../src/client/components/ClinicMap";
-import { mapClinics, tileUrl, tileOptions } from "../src/client/map";
+import {
+  mapClinics,
+  tileUrl,
+  mapStyle,
+  clinicPoints,
+  positionPoint,
+} from "../src/client/map";
 
 const clinic = clinicSchema.parse(
   JSON.parse(readFileSync("public/clinics.json", "utf8"))[0],
@@ -129,7 +135,8 @@ test("map renders directly in the page so tile requests can identify the site", 
   assert.ok(!html.includes("iframe"));
   assert.ok(!html.includes("srcDoc"));
   assert.equal(tileUrl, "https://tile.openstreetmap.org/{z}/{x}/{y}.png");
-  assert.equal(tileOptions.referrerPolicy, "strict-origin-when-cross-origin");
+  const source = mapStyle().sources.basemap;
+  assert.equal(source.type, "raster");
 });
 
 test("map preserves zero coordinates, excludes missing ones and limits nearby markers", () => {
@@ -192,4 +199,38 @@ test("Radix list/map control keeps its selected mode", () => {
   assert.ok(html.includes('aria-label="Vista del directorio"'));
   assert.ok(html.includes('aria-label="Mapa"'));
   assert.equal((html.match(/aria-checked="true"/g) || []).length, 1);
+});
+
+test("MapLibre uses a single unclustered GeoJSON layer and longitude-latitude coordinates", () => {
+  const points = mapClinics([{ ...clinic, lat: 21.1, lng: -101.6 }], false);
+  const data = clinicPoints(points);
+  assert.deepEqual(data.features[0].geometry.coordinates, [-101.6, 21.1]);
+  assert.equal(data.features[0].properties.clinicId, clinic.id);
+  const source = mapStyle().sources.clinics;
+  assert.equal(source.type, "geojson");
+  if (source.type === "geojson") assert.equal(source.cluster, false);
+  const markerLayer = mapStyle().layers.find((layer) => layer.id === "clinics");
+  assert.equal(markerLayer?.type, "symbol");
+  if (markerLayer?.type === "symbol") {
+    assert.equal(markerLayer.layout?.["icon-image"], "clinic-marker");
+    assert.equal(markerLayer.layout?.["icon-allow-overlap"], true);
+  }
+  assert.equal(
+    mapStyle().layers.filter(
+      (layer) => "source" in layer && layer.source === "clinics",
+    ).length,
+    1,
+  );
+  assert.equal(positionPoint(null).features.length, 0);
+  assert.deepEqual(
+    positionPoint([19.4, -99.1]).features[0].geometry.coordinates,
+    [-99.1, 19.4],
+  );
+});
+
+test("lazy MapLibre import exposes the runtime constructors used by the map", async () => {
+  const { default: engine } = await import("maplibre-gl");
+  assert.equal(typeof engine.Map, "function");
+  assert.equal(typeof engine.Popup, "function");
+  assert.equal(typeof engine.NavigationControl, "function");
 });
