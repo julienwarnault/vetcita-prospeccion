@@ -48,6 +48,12 @@ export const blankVisit: Visit = visitSchema.parse({});
 export const clinicSchema = z.object({
   id: z.string().min(1).max(200),
   name: z.string().min(1),
+  // Legacy/manual clinics can omit the state until it is known.
+  state: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((value) => value ?? ""),
   borough: z
     .string()
     .nullable()

@@ -4,11 +4,11 @@ import { test } from "node:test";
 import { clinicSchema, visitSchema } from "../src/shared/schemas";
 import { clinicStatus, distance, isActive } from "../src/client/model";
 
-test("all 1,922 existing clinics remain compatible with the shared schema", () => {
+test("merged directory has unique identities and remains compatible with the shared schema", () => {
   const data: unknown[] = JSON.parse(
     readFileSync("public/clinics.json", "utf8"),
   );
-  assert.equal(data.length, 1922);
+  assert.equal(data.length, 2267);
   const clinics = data.map((clinic) => clinicSchema.parse(clinic));
   assert.equal(
     new Set(clinics.map((clinic) => clinic.id)).size,
@@ -31,4 +31,29 @@ test("distance handles absent coordinates and valid zero coordinates", () => {
   assert.equal(distance({ ...clinic, lat: null }, [0, 0]), Infinity);
   assert.equal(distance({ ...clinic, lat: 0, lng: 0 }, [0, 0]), 0);
   assert.equal(distance(clinic, null), Infinity);
+});
+
+test("clinics carry their Mexican state without inventing unknown locations", () => {
+  const data: Record<string, unknown>[] = JSON.parse(
+    readFileSync("public/clinics.json", "utf8"),
+  );
+  const counts: Record<string, number> = {};
+  for (const row of data) {
+    assert.ok(Object.hasOwn(row, "state"));
+    const clinic = clinicSchema.parse(row);
+    counts[clinic.state] = (counts[clinic.state] || 0) + 1;
+  }
+  assert.deepEqual(counts, {
+    "Ciudad de México": 1920,
+    "": 2,
+    Guanajuato: 106,
+    "Nuevo León": 239,
+  });
+});
+
+test("legacy clinic JSON without a state remains readable", () => {
+  const data = JSON.parse(readFileSync("public/clinics.json", "utf8"));
+  const legacy = { ...data[0] };
+  delete legacy.state;
+  assert.equal(clinicSchema.parse(legacy).state, "");
 });
