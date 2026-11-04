@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import Session from "./Session";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./styles.css";
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<Session />);

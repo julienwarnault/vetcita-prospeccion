@@ -8,6 +8,8 @@ import {
   House,
   LocateFixed,
 } from "lucide-react";
+import type { User } from "../../shared/schemas";
+import Button from "./ui/Button";
 import type { Page } from "../model";
 
 const navigation = [
@@ -58,10 +60,14 @@ export default function AppLayout({
   page,
   go,
   children,
+  user,
+  onLogout,
 }: {
   page: Page;
   go: (page: Page) => void;
   children: ReactNode;
+  user?: User;
+  onLogout?: () => void;
 }) {
   return (
     <div className="flex min-h-screen">
@@ -95,7 +101,7 @@ export default function AppLayout({
           ))}
         </nav>
         <div className="mt-auto border-t border-[#efedf3] px-2.5 py-5 text-xs font-bold text-[#6b6779]">
-          Ciudad de México
+          {user?.states?.join(", ") || "Todos los estados"}
           <br />
           <span className="font-normal leading-[2] text-[#aaa5b5]">
             Tu trabajo, más cerca.
@@ -110,13 +116,18 @@ export default function AppLayout({
             <span className="text-[11px] text-[#aaa3b2]">/ prospección</span>
           </div>
           <div className="flex items-center gap-3 max-[420px]:gap-[5px]">
+            {onLogout && (
+              <Button variant="text" onClick={onLogout}>
+                Salir
+              </Button>
+            )}
             <span
               className="size-1.5 rounded-full bg-[#8fc5ab] max-[800px]:hidden"
               aria-hidden="true"
             />
-            <span className="max-[800px]:hidden">Ciudad de México</span>
+            <span className="max-[800px]:hidden">{user?.email}</span>
             <span className="grid size-[34px] place-items-center rounded-full bg-[#eee8ff] font-bold text-[#7355c9]">
-              V
+              {user?.email[0]?.toUpperCase() || "V"}
             </span>
           </div>
         </header>

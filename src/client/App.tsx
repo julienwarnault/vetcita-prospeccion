@@ -7,6 +7,7 @@ import {
   type Clinic,
   type DraftVisit,
   type NewClinic,
+  type User,
 } from "../shared/schemas";
 import AppLayout from "./components/AppLayout";
 import ClinicCard from "./components/ClinicCard";
@@ -19,7 +20,13 @@ import { useProspection } from "./hooks/useProspection";
 import { getPosition, useLocation } from "./hooks/useLocation";
 import { clinicStatus, distance, isActive, type Page } from "./model";
 
-export default function App() {
+export default function App({
+  user,
+  onLogout,
+}: {
+  user: User;
+  onLogout: () => void;
+}) {
   const {
     clinics,
     visits,
@@ -216,7 +223,7 @@ export default function App() {
     />
   );
   return (
-    <AppLayout page={page} go={go}>
+    <AppLayout page={page} go={go} user={user} onLogout={onLogout}>
       {error && (
         <div className="mt-5 text-[13px] text-[#a75b54]" role="alert">
           No se pudieron cargar los datos. {error}{" "}
@@ -235,6 +242,7 @@ export default function App() {
           newClinic={newClinic}
           setNewClinic={setNewClinic}
           boroughs={boroughs}
+          states={user.states}
           locating={locating}
           clinicLocation={clinicLocation}
           adding={adding || !ready}

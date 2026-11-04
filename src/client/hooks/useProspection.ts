@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { z } from "zod";
 import { api } from "../api";
-import {
-  clinicSchema,
-  type Clinic,
-  type NewClinic,
-  type Visit,
-} from "../../shared/schemas";
+import { type Clinic, type NewClinic, type Visit } from "../../shared/schemas";
 
 export function useProspection() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -20,15 +14,11 @@ export function useProspection() {
     setReady(false);
     setError("");
     try {
-      const [base, custom, records] = await Promise.all([
-        fetch("/clinics.json").then(async (response) => {
-          if (!response.ok) throw new Error("No se pudo cargar el directorio.");
-          return z.array(clinicSchema).parse(await response.json());
-        }),
+      const [clinics, records] = await Promise.all([
         api.clinics(),
         api.visits(),
       ]);
-      setClinics([...base, ...custom]);
+      setClinics(clinics);
       setVisits(Object.fromEntries(records.map((row) => [row.id, row.data])));
       setReady(true);
     } catch (error) {

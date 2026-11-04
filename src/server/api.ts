@@ -11,7 +11,8 @@ import { getDb } from "./db";
 import { customClinics, visits } from "./db/schema";
 import type { AppEnv } from "./env";
 
-// Cloudflare Access protects the deployed Worker; the app has no login flow.
+import { auth, requireUser } from "./auth";
+import { allClinics, canAccess } from "./access";
 export const api = new Hono<AppEnv>()
   .use("*", async (c, next) => {
     c.header("Cache-Control", "private, no-store");
@@ -33,11 +34,11 @@ export const api = new Hono<AppEnv>()
       onError: (c) => c.json({ error: "Datos demasiado grandes" }, 413),
     }),
   )
+  .route("/auth", auth)
+  .use("*", requireUser)
   .get("/clinics", async (c) => {
-    const rows = await getDb(c.env.DB).select().from(customClinics);
-    // Existing D1 JSON storage is retained so no data migration is needed.
-    const clinics = rows.map((row) => clinicSchema.parse(JSON.parse(row.data)));
-    return c.json(clinics);
+    const clinics = await allClinics(c.env.DB);
+    return c.json(clinics.filter((clinic) => canAccess(c.get("user"), clinic)));
   })
   .post(
     "/clinics",
@@ -50,6 +51,8 @@ export const api = new Hono<AppEnv>()
     }),
     async (c) => {
       const data = c.req.valid("json");
+      if (!canAccess(c.get("user"), data))
+        return c.json({ error: "Estado no autorizado" }, 403);
       const clinic = clinicSchema.parse({
         ...data,
         id: `manual-${crypto.randomUUID()}`,
@@ -66,14 +69,20 @@ export const api = new Hono<AppEnv>()
           id: clinic.id,
           data: JSON.stringify(clinic),
           createdAt: new Date().toISOString(),
-          author:
-            c.req.header("Cf-Access-Authenticated-User-Email") || "shared",
+          author: c.get("user").email,
         });
       return c.json(clinic, 201);
     },
   )
   .get("/visits", async (c) => {
-    const rows = await getDb(c.env.DB).select().from(visits);
+    const allowed = new Set(
+      (await allClinics(c.env.DB))
+        .filter((clinic) => canAccess(c.get("user"), clinic))
+        .map((clinic) => clinic.id),
+    );
+    const rows = (await getDb(c.env.DB).select().from(visits)).filter((row) =>
+      allowed.has(row.id),
+    );
     return c.json(
       rows.map((row) => ({
         ...row,
@@ -92,11 +101,16 @@ export const api = new Hono<AppEnv>()
     }),
     async (c) => {
       const { id, data } = c.req.valid("json");
+      const clinic = (await allClinics(c.env.DB)).find(
+        (clinic) => clinic.id === id,
+      );
+      if (!clinic || !canAccess(c.get("user"), clinic))
+        return c.json({ error: "Clínica no encontrada" }, 404);
       const row = {
         id,
         data: JSON.stringify(data),
         updatedAt: new Date().toISOString(),
-        author: c.req.header("Cf-Access-Authenticated-User-Email") || "shared",
+        author: c.get("user").email,
       };
       await getDb(c.env.DB)
         .insert(visits)

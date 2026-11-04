@@ -6,7 +6,7 @@ import { clinicStatus, distance, isActive } from "../src/client/model";
 
 test("merged directory has unique identities and remains compatible with the shared schema", () => {
   const data: unknown[] = JSON.parse(
-    readFileSync("public/clinics.json", "utf8"),
+    readFileSync("data/clinics.json", "utf8"),
   );
   assert.equal(data.length, 2267);
   const clinics = data.map((clinic) => clinicSchema.parse(clinic));
@@ -26,7 +26,7 @@ test("legacy statuses keep their existing display and filtering behavior", () =>
 });
 
 test("distance handles absent coordinates and valid zero coordinates", () => {
-  const data = JSON.parse(readFileSync("public/clinics.json", "utf8"));
+  const data = JSON.parse(readFileSync("data/clinics.json", "utf8"));
   const clinic = clinicSchema.parse(data[0]);
   assert.equal(distance({ ...clinic, lat: null }, [0, 0]), Infinity);
   assert.equal(distance({ ...clinic, lat: 0, lng: 0 }, [0, 0]), 0);
@@ -35,7 +35,7 @@ test("distance handles absent coordinates and valid zero coordinates", () => {
 
 test("clinics carry their Mexican state without inventing unknown locations", () => {
   const data: Record<string, unknown>[] = JSON.parse(
-    readFileSync("public/clinics.json", "utf8"),
+    readFileSync("data/clinics.json", "utf8"),
   );
   const counts: Record<string, number> = {};
   for (const row of data) {
@@ -52,7 +52,7 @@ test("clinics carry their Mexican state without inventing unknown locations", ()
 });
 
 test("legacy clinic JSON without a state remains readable", () => {
-  const data = JSON.parse(readFileSync("public/clinics.json", "utf8"));
+  const data = JSON.parse(readFileSync("data/clinics.json", "utf8"));
   const legacy = { ...data[0] };
   delete legacy.state;
   assert.equal(clinicSchema.parse(legacy).state, "");

@@ -6,6 +6,7 @@ import type { AppEnv } from "./env";
 const app = new Hono<AppEnv>();
 app.route("/api", api);
 app.all("/api/*", (c) => c.json({ error: "Ruta no encontrada" }, 404));
+app.get("/clinics.json", (c) => c.json({ error: "Ruta no encontrada" }, 404));
 app.get("/inicio", (c) => c.redirect("/", 302));
 app.get("/inicio/", (c) => c.redirect("/", 302));
 app.all("*", (c) => c.env.ASSETS.fetch(c.req.raw));

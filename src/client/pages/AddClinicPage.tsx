@@ -1,7 +1,7 @@
 import { ArrowLeft, LocateFixed } from "lucide-react";
 import { panelVariants } from "../components/ui/Panel";
 import Button from "../components/ui/Button";
-import { Input, Field } from "../components/ui/Fields";
+import { Input, Field, Select } from "../components/ui/Fields";
 import type { FormEvent, Dispatch, SetStateAction } from "react";
 import type { NewClinic } from "../../shared/schemas";
 
@@ -10,6 +10,7 @@ export default function AddClinicPage({
   newClinic,
   setNewClinic,
   boroughs,
+  states,
   locating,
   clinicLocation,
   adding,
@@ -20,6 +21,7 @@ export default function AddClinicPage({
   newClinic: NewClinic;
   setNewClinic: Dispatch<SetStateAction<NewClinic>>;
   boroughs: string[];
+  states?: string[] | null;
   locating: boolean;
   clinicLocation: () => void;
   adding: boolean;
@@ -61,6 +63,41 @@ export default function AddClinicPage({
               }
               placeholder="Nombre de la clínica"
             />
+          </Field>
+          <Field>
+            Estado *
+            {states ? (
+              <Select
+                required
+                value={newClinic.state}
+                onChange={(e) =>
+                  setNewClinic({ ...newClinic, state: e.target.value })
+                }
+              >
+                <option value="">Selecciona un estado</option>
+                {states.map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              <Input
+                required
+                maxLength={150}
+                list="state-list"
+                value={newClinic.state}
+                onChange={(e) =>
+                  setNewClinic({ ...newClinic, state: e.target.value })
+                }
+                placeholder="Ej. Ciudad de México"
+              />
+            )}
+            <datalist id="state-list">
+              <option>Ciudad de México</option>
+              <option>Guanajuato</option>
+              <option>Nuevo León</option>
+            </datalist>
           </Field>
           <Field>
             Teléfono

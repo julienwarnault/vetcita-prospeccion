@@ -18,12 +18,17 @@ import {
 } from "../src/client/map";
 
 const clinic = clinicSchema.parse(
-  JSON.parse(readFileSync("public/clinics.json", "utf8"))[0],
+  JSON.parse(readFileSync("data/clinics.json", "utf8"))[0],
 );
 const noop = () => {};
 
 test("home retains its desktop and mobile navigation and actions", () => {
-  const html = renderToStaticMarkup(<App />);
+  const html = renderToStaticMarkup(
+    <App
+      user={{ id: "tester", email: "tester@example.invalid", states: null }}
+      onLogout={noop}
+    />,
+  );
   for (const text of [
     "Hoy es un buen día",
     "Cerca de mí",
@@ -76,7 +81,7 @@ test("manual clinic form keeps required inputs and optional GPS", () => {
       addMsg=""
     />,
   );
-  assert.equal((html.match(/required=""/g) || []).length, 2);
+  assert.equal((html.match(/required=""/g) || []).length, 3);
   assert.ok(html.includes("Usar GPS"));
   assert.ok(html.includes("Guardar clínica"));
 });

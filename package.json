@@ -13,7 +13,8 @@
     "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB --local --config wrangler.jsonc --persist-to .wrangler/state",
-    "predev": "npm run db:migrate"
+    "predev": "npm run db:migrate",
+    "user:create": "tsx scripts/create-user.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.0",

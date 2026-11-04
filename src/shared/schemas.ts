@@ -102,6 +102,7 @@ export type Clinic = z.infer<typeof clinicSchema>;
 
 export const newClinicSchema = z
   .object({
+    state: z.string().trim().max(150).default(""),
     name: z.string().trim().min(1).max(200),
     address: z.string().trim().min(1).max(500),
     borough: z.string().trim().max(100).default(""),
@@ -117,6 +118,7 @@ export const newClinicSchema = z
   );
 export type NewClinic = z.infer<typeof newClinicSchema>;
 export const blankClinic: NewClinic = {
+  state: "",
   name: "",
   address: "",
   borough: "",
@@ -136,3 +138,14 @@ export const visitRecordSchema = z.object({
   updatedAt: z.string(),
   author: z.string(),
 });
+
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(300),
+  password: z.string().min(1).max(1024),
+});
+export const userSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  states: z.array(z.string()).nullable(),
+});
+export type User = z.infer<typeof userSchema>;

@@ -1,4 +1,4 @@
-CREATE TABLE `custom_clinics` (
+CREATE TABLE IF NOT EXISTS `custom_clinics` (
 	`id` text PRIMARY KEY NOT NULL,
 	`data` text NOT NULL,
 	`created_at` text NOT NULL,

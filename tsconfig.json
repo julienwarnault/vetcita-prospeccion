@@ -12,5 +12,5 @@
     "esModuleInterop": true,
     "types": ["vite/client", "node", "@cloudflare/workers-types"]
   },
-  "include": ["src", "tests", "vite.config.ts", "drizzle.config.ts"]
+  "include": ["src", "tests", "scripts", "vite.config.ts", "drizzle.config.ts"]
 }
