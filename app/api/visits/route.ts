@@ -1,0 +1,5 @@
+import { getDb } from '../../../db';
+import { visits } from '../../../db/schema';
+import { getChatGPTUser } from '../../chatgpt-auth';
+export async function GET(){ const user=await getChatGPTUser(); if(!user) return Response.json({error:'No autorizado'},{status:401}); try {return Response.json(await getDb().select().from(visits));} catch {return Response.json({error:'No se pudieron cargar las visitas'},{status:500});} }
+export async function POST(req:Request){ const user=await getChatGPTUser(); if(!user) return Response.json({error:'No autorizado'},{status:401}); try {const b=await req.json() as {id:string;data:Record<string,unknown>}; if(typeof b.id!=='string'||b.id.length>200||typeof b.data!=='object'||JSON.stringify(b.data).length>20000)return Response.json({error:'Datos inválidos'},{status:400}); const row={id:b.id,data:JSON.stringify(b.data),updatedAt:new Date().toISOString(),author:user.email||user.userId}; await getDb().insert(visits).values(row).onConflictDoUpdate({target:visits.id,set:row}); return Response.json(row);} catch{return Response.json({error:'No se pudo guardar'},{status:500});} }
