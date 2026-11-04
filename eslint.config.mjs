@@ -1,28 +1,22 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import hooks from "eslint-plugin-react-hooks";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  globalIgnores([
-    "dist/**",
-    ".vinext/**",
-    ".wrangler/**",
-    ".sites-runtime/**",
-    "outputs/**",
-    "work/**",
-  ]),
+export default tseslint.config(
   {
-    files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
+    ignores: ["dist/**", "node_modules/**", ".wrangler/**"],
+  },
+  { ...js.configs.recommended, files: ["**/*.{ts,tsx}"] },
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ["**/*.{ts,tsx}"],
+  })),
+  {
+    files: ["src/client/**/*.{ts,tsx}"],
+    plugins: { "react-hooks": hooks },
     rules: {
-      // These files are vendored verbatim from shadcn@4.17.0. Keep the
-      // registry source intact while applying the stricter rules to Site code.
-      "@typescript-eslint/no-unused-vars": "off",
-      "react-hooks/purity": "off",
-      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
     },
   },
-]);
-
-export default eslintConfig;
+);

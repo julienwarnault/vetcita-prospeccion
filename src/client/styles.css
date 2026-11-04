@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --color-primary: #7658cf;
+  --color-accent: #8869e8;
+  --color-background: #f8f8fb;
+  --color-foreground: #242339;
+}
+
+@layer base {
+  body {
+    @apply m-0 bg-background font-sans text-foreground leading-[normal];
+  }
+  button:not(:disabled),
+  [role="radio"]:not([data-disabled]) {
+    @apply cursor-pointer;
+  }
+  a {
+    @apply text-[#6c51c6] no-underline;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-bold;
+  }
+  h1 {
+    @apply mt-2.5 mb-3 text-[38px] leading-[1.2] tracking-[-1.5px] max-[800px]:text-[30px];
+  }
+  h2 {
+    @apply text-[21px] tracking-[-.5px];
+  }
+  h3 {
+    @apply text-[17px];
+  }
+}
