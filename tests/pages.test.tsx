@@ -99,6 +99,8 @@ test("directory, nearby, history and summary pages still render", () => {
     boroughs: [],
     status: "",
     setStatus: noop,
+    sort: "relevance" as const,
+    setSort: noop,
     hasLegacy: false,
     filtered: [clinic],
     map: false,
@@ -193,6 +195,8 @@ test("Radix list/map control keeps its selected mode", () => {
       boroughs={[]}
       status=""
       setStatus={noop}
+      sort="relevance"
+      setSort={noop}
       hasLegacy={false}
       filtered={[]}
       map={true}

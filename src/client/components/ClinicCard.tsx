@@ -1,4 +1,4 @@
-import { ChevronRight, Cross } from "lucide-react";
+import { ChevronRight, Cross, Star } from "lucide-react";
 import type { Clinic, Visit } from "../../shared/schemas";
 import { clinicStatus, distance, type Position } from "../model";
 import Badge from "./ui/Badge";
@@ -41,6 +41,17 @@ export default function ClinicCard({
         <p className="my-[5px] text-xs leading-[1.4] text-[#918d9b]">
           {c.address || "Dirección no disponible"}
         </p>
+        <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#777282]">
+          <span className="inline-flex items-center gap-1">
+            <Star aria-hidden="true" className="size-3.5 text-[#b18a39]" />
+            {c.rating === null ? "Sin calificación" : `${c.rating}/5`}
+          </span>
+          <span>
+            {c.reviews === null
+              ? "Reseñas no disponibles"
+              : `${c.reviews.toLocaleString("es-MX")} ${c.reviews === 1 ? "reseña" : "reseñas"}`}
+          </span>
+        </div>
         <div className="text-[11px] text-[#aaa5b2] [&_b]:text-[#8c72c5]">
           {c.borough || "Alcaldía sin confirmar"}{" "}
           {nearby && pos && isFinite(distance(c, pos)) && (

@@ -2,12 +2,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { clinicSchema, visitSchema } from "../src/shared/schemas";
-import { clinicStatus, distance, isActive } from "../src/client/model";
+import {
+  clinicStatus,
+  compareClinics,
+  distance,
+  isActive,
+} from "../src/client/model";
 
 test("merged directory has unique identities and remains compatible with the shared schema", () => {
-  const data: unknown[] = JSON.parse(
-    readFileSync("data/clinics.json", "utf8"),
-  );
+  const data: unknown[] = JSON.parse(readFileSync("data/clinics.json", "utf8"));
   assert.equal(data.length, 2267);
   const clinics = data.map((clinic) => clinicSchema.parse(clinic));
   assert.equal(
@@ -15,6 +18,7 @@ test("merged directory has unique identities and remains compatible with the sha
     clinics.length,
   );
   assert.equal(clinics[0].website, "");
+  assert.equal(clinics[0].reviews, 4);
 });
 
 test("legacy statuses keep their existing display and filtering behavior", () => {
@@ -56,4 +60,53 @@ test("legacy clinic JSON without a state remains readable", () => {
   const legacy = { ...data[0] };
   delete legacy.state;
   assert.equal(clinicSchema.parse(legacy).state, "");
+});
+
+test("clinic sorting balances ratings with review volume and supports names, distance and visit date", () => {
+  const data = JSON.parse(readFileSync("data/clinics.json", "utf8"));
+  const clinic = clinicSchema.parse(data[0]);
+  const established = {
+    ...clinic,
+    id: "established",
+    name: "Álamo",
+    rating: 4.8,
+    reviews: 200,
+    lat: 19,
+    lng: -99,
+  };
+  const singleReview = {
+    ...clinic,
+    id: "single",
+    name: "Zorro",
+    rating: 5,
+    reviews: 1,
+    lat: 20,
+    lng: -99,
+  };
+  const missing = {
+    ...clinic,
+    id: "missing",
+    name: "B",
+    rating: null,
+    reviews: null,
+    lat: null,
+    lng: null,
+  };
+  const sort = (order: Parameters<typeof compareClinics>[2]) =>
+    [missing, singleReview, established]
+      .sort((a, b) =>
+        compareClinics(
+          a,
+          b,
+          order,
+          { single: visitSchema.parse({ date: "2026-11-04T12:00:00Z" }) },
+          [19, -99],
+        ),
+      )
+      .map((clinic) => clinic.id);
+  assert.deepEqual(sort("relevance"), ["established", "single", "missing"]);
+  assert.deepEqual(sort("name-asc"), ["established", "missing", "single"]);
+  assert.deepEqual(sort("name-desc"), ["single", "missing", "established"]);
+  assert.deepEqual(sort("distance"), ["established", "single", "missing"]);
+  assert.equal(sort("recent")[0], "single");
 });

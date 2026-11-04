@@ -82,7 +82,7 @@ export default function ClinicDetails({
               <div>
                 <small>CALIFICACIÓN</small>
                 <p>
-                  {selected.rating ? (
+                  {selected.rating !== null ? (
                     <>
                       <Star
                         aria-hidden="true"
@@ -93,6 +93,14 @@ export default function ClinicDetails({
                   ) : (
                     "Sin información"
                   )}
+                </p>
+              </div>
+              <div>
+                <small>RESEÑAS</small>
+                <p>
+                  {selected.reviews === null
+                    ? "Sin información"
+                    : selected.reviews.toLocaleString("es-MX")}
                 </p>
               </div>
             </div>

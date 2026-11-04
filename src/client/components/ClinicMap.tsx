@@ -55,14 +55,16 @@ export default function ClinicMap({
           "top-left",
         );
         view.on("load", () => {
-          void view.loadImage("/map/marker-icon-2x.png")
+          void view
+            .loadImage("/map/marker-icon-2x.png")
             .then((image) => {
               if (disposed) return;
               view.addImage("clinic-marker", image.data, { pixelRatio: 2 });
               setMap(view);
             })
             .catch(() => {
-              if (!disposed) setError("No se pudieron cargar los marcadores del mapa.");
+              if (!disposed)
+                setError("No se pudieron cargar los marcadores del mapa.");
             });
         });
         view.on("error", () => {
@@ -87,6 +89,28 @@ export default function ClinicMap({
           const content = document.createElement("div");
           const title = document.createElement("strong");
           title.textContent = clinic.name;
+          const rating = document.createElement("p");
+          rating.className = "mt-2 text-xs";
+          rating.textContent = [
+            clinic.rating === null ? "Sin calificación" : `${clinic.rating}/5`,
+            clinic.reviews === null
+              ? "Reseñas no disponibles"
+              : `${clinic.reviews.toLocaleString("es-MX")} ${clinic.reviews === 1 ? "reseña" : "reseñas"}`,
+          ].join(" · ");
+          content.appendChild(title);
+          content.appendChild(rating);
+          if (clinic.phone) {
+            const phone = document.createElement("a");
+            phone.href = `tel:${clinic.phone}`;
+            phone.textContent = clinic.phone;
+            phone.className = "mt-1 block text-xs underline";
+            content.appendChild(phone);
+          } else {
+            const phone = document.createElement("p");
+            phone.textContent = "Teléfono no disponible";
+            phone.className = "mt-1 text-xs";
+            content.appendChild(phone);
+          }
           const button = document.createElement("button");
           button.type = "button";
           button.className = buttonVariants({ className: "mt-2.5" });
@@ -94,10 +118,12 @@ export default function ClinicMap({
           button.addEventListener("click", () =>
             current.current.onOpen(clinic),
           );
-          content.appendChild(title);
           content.appendChild(button);
           popup.current?.remove();
-          popup.current = new engine.Popup({ maxWidth: "280px", offset: [0, -41] })
+          popup.current = new engine.Popup({
+            maxWidth: "280px",
+            offset: [0, -41],
+          })
             .setLngLat([clinic.lng, clinic.lat])
             .setDOMContent(content)
             .addTo(view);

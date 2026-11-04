@@ -96,6 +96,7 @@ export const clinicSchema = z.object({
     .refine((value) => /^https?:\/\//i.test(value)),
   verify: z.boolean(),
   rating: z.number().min(0).max(5).nullable(),
+  reviews: z.number().int().nonnegative().nullable().optional().default(null),
   manual: z.boolean().optional(),
 });
 export type Clinic = z.infer<typeof clinicSchema>;

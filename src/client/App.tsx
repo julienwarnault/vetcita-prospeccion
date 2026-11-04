@@ -18,7 +18,13 @@ import SummaryPage from "./pages/SummaryPage";
 import DirectoryPage from "./pages/DirectoryPage";
 import { useProspection } from "./hooks/useProspection";
 import { getPosition, useLocation } from "./hooks/useLocation";
-import { clinicStatus, distance, isActive, type Page } from "./model";
+import {
+  clinicStatus,
+  compareClinics,
+  isActive,
+  type ClinicSort,
+  type Page,
+} from "./model";
 
 export default function App({
   user,
@@ -44,6 +50,7 @@ export default function App({
   const [query, setQuery] = useState("");
   const [borough, setBorough] = useState("");
   const [status, setStatus] = useState("");
+  const [sort, setSort] = useState<ClinicSort>("relevance");
   const [map, setMap] = useState(false);
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
@@ -85,16 +92,8 @@ export default function App({
             (page !== "near" || !clinic.verify)
           );
         })
-        .sort((a, b) =>
-          page === "near" && pos
-            ? distance(a, pos) - distance(b, pos)
-            : page === "history"
-              ? (visits[b.id]?.date || "").localeCompare(
-                  visits[a.id]?.date || "",
-                )
-              : a.name.localeCompare(b.name),
-        ),
-    [clinics, visits, query, borough, status, page, pos],
+        .sort((a, b) => compareClinics(a, b, sort, visits, pos)),
+    [clinics, visits, query, borough, status, page, pos, sort],
   );
 
   const open = useCallback(
@@ -130,6 +129,13 @@ export default function App({
     setQuery("");
     setBorough("");
     setStatus("");
+    setSort(
+      next === "near"
+        ? "distance"
+        : next === "history"
+          ? "recent"
+          : "relevance",
+    );
     setMap(false);
     if (next === "near" && !pos) void locate();
   }
@@ -290,6 +296,8 @@ export default function App({
           boroughs={boroughs}
           status={status}
           setStatus={setStatus}
+          sort={sort}
+          setSort={setSort}
           hasLegacy={hasLegacy}
           filtered={filtered}
           map={map}

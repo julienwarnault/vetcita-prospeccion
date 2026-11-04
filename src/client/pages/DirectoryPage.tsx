@@ -6,7 +6,7 @@ import { Input, Select } from "../components/ui/Fields";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { Clinic } from "../../shared/schemas";
 import { statusOptions } from "../../shared/schemas";
-import type { Page, Position } from "../model";
+import type { ClinicSort, Page, Position } from "../model";
 import ClinicMap from "../components/ClinicMap";
 
 const viewToggleVariants = cva(
@@ -26,6 +26,8 @@ export default function DirectoryPage({
   boroughs,
   status,
   setStatus,
+  sort,
+  setSort,
   hasLegacy,
   filtered,
   map,
@@ -45,6 +47,8 @@ export default function DirectoryPage({
   boroughs: string[];
   status: string;
   setStatus: Dispatch<SetStateAction<string>>;
+  sort: ClinicSort;
+  setSort: Dispatch<SetStateAction<ClinicSort>>;
   hasLegacy: boolean;
   filtered: Clinic[];
   map: boolean;
@@ -139,39 +143,57 @@ export default function DirectoryPage({
           {hasLegacy && <option>Visitada (anterior)</option>}
         </Select>
       </div>
-      <div className="my-5 flex items-center justify-between text-[13px] text-[#9994a3] [&_b]:text-[#4c465b]">
+      <div className="my-5 flex flex-wrap items-center justify-between gap-3 text-[13px] text-[#9994a3] [&_b]:text-[#4c465b]">
         <span>
           <b>{filtered.length}</b> clínicas{" "}
-          {page === "near" && pos ? "ordenadas por distancia" : ""}
+          {sort === "distance" && pos ? "ordenadas por distancia" : ""}
         </span>
-        {(page === "near" || page === "list") && (
-          <ToggleGroup.Root
-            type="single"
-            value={map ? "map" : "list"}
-            onValueChange={(value) => {
-              if (value) setMap(value === "map");
-            }}
-            aria-label="Vista del directorio"
-            className="flex rounded-[9px] bg-[#efedf4] p-[3px]"
-          >
-            <ToggleGroup.Item
-              value="list"
-              aria-label="Lista"
-              className={viewToggleVariants()}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-[#777282]">
+            Ordenar por
+            <Select
+              className="w-auto min-w-0 py-2 text-xs"
+              value={sort}
+              onChange={(event) => setSort(event.target.value as ClinicSort)}
             >
-              <List aria-hidden="true" className="size-4" />
-              Lista
-            </ToggleGroup.Item>
-            <ToggleGroup.Item
-              value="map"
-              aria-label="Mapa"
-              className={viewToggleVariants()}
+              <option value="relevance">Relevancia (nota y reseñas)</option>
+              <option value="name-asc">Nombre (A–Z)</option>
+              <option value="name-desc">Nombre (Z–A)</option>
+              {page === "near" && <option value="distance">Distancia</option>}
+              {page === "history" && (
+                <option value="recent">Visitas más recientes</option>
+              )}
+            </Select>
+          </label>
+          {(page === "near" || page === "list") && (
+            <ToggleGroup.Root
+              type="single"
+              value={map ? "map" : "list"}
+              onValueChange={(value) => {
+                if (value) setMap(value === "map");
+              }}
+              aria-label="Vista del directorio"
+              className="flex rounded-[9px] bg-[#efedf4] p-[3px]"
             >
-              <Map aria-hidden="true" className="size-4" />
-              Mapa
-            </ToggleGroup.Item>
-          </ToggleGroup.Root>
-        )}
+              <ToggleGroup.Item
+                value="list"
+                aria-label="Lista"
+                className={viewToggleVariants()}
+              >
+                <List aria-hidden="true" className="size-4" />
+                Lista
+              </ToggleGroup.Item>
+              <ToggleGroup.Item
+                value="map"
+                aria-label="Mapa"
+                className={viewToggleVariants()}
+              >
+                <Map aria-hidden="true" className="size-4" />
+                Mapa
+              </ToggleGroup.Item>
+            </ToggleGroup.Root>
+          )}
+        </div>
       </div>
       {(page === "near" || page === "list") && map ? (
         <div className="[&>p]:my-3 [&>p]:text-xs [&>p]:text-[#8c8798]">
